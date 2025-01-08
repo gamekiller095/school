@@ -1,0 +1,39 @@
+- name: Update and install required packages for LibreNMS
+  dnf:
+    name:
+      - curl
+      - composer
+      - unzip
+      - git
+      - mariadb-server
+      - net-snmp
+      - net-snmp-utils
+      - rrdtool
+      - python3-PyMySQL
+      - python3-pip
+    state: present
+    update_cache: true
+
+- name: Create LibreNMS user
+  user:
+    name: librenms
+    password: librenms
+    state: present
+    shell: /bin/bash
+
+- name: Configure Git safe.directory
+  shell: git config --global --add safe.directory /opt/librenms
+
+- name: Clone LibreNMS repository
+  git:
+    repo: https://github.com/librenms/librenms.git
+    dest: /opt/librenms
+    update: yes
+
+- name: Set permissions for LibreNMS
+  file:
+    path: /opt/librenms
+    state: directory
+    owner: librenms
+    group: librenms
+    recurse: true

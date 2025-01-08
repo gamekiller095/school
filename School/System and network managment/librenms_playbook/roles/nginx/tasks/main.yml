@@ -1,0 +1,57 @@
+- name: Install Nginx
+  dnf:
+    name: nginx
+    state: present
+    update_cache: true
+    
+- name: Create Nginx directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /etc/nginx/sites-available
+    - /etc/nginx/sites-enabled   
+    
+- name: Configure Nginx
+  copy:
+    dest: /etc/nginx/sites-available/librenms
+    content: |
+      server {
+          listen 80;
+          server_name _;
+
+          root /opt/librenms/html;
+          index index.php;
+
+          location / {
+              try_files $uri $uri/ /index.php?$query_string;
+          }
+
+          location ~ \.php$ {
+              include snippets/fastcgi-php.conf;
+              fastcgi_pass unix:/run/php/php8.1-fpm.sock;
+              fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+              include fastcgi_params;
+          }
+
+          location ~ /\.ht {
+              deny all;
+          }
+      }
+  notify:
+    - Reload Nginx
+
+- name: Enable Nginx site
+  file:
+    src: /etc/nginx/sites-available/librenms
+    dest: /etc/nginx/sites-enabled/librenms
+    state: link
+  notify:
+    - Reload Nginx
+
+- name: Remove default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify:
+    - Reload Nginx

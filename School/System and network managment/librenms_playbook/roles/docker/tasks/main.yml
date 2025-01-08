@@ -1,0 +1,57 @@
+- name: Install packages
+  dnf:
+    state: present
+    name:
+      - bridge-utils
+      - ca-certificates
+      - curl
+      - gnupg2
+    update_cache: true
+
+- name: Get architecture
+  command: uname -m
+  register: arch
+
+- name: Get GPG key
+  get_url:
+    url: https://download.docker.com/linux/fedora/gpg
+    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-docker
+    mode: 0644
+    force: true
+  tags: install_docker
+
+- name: Import Docker GPG key
+  rpm_key:
+    state: present
+    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-docker
+  tags: install_docker
+
+- name: Add Docker repository
+  copy:
+    dest: /etc/yum.repos.d/docker.repo
+    content: |
+      [docker-ce-stable]
+      name=Docker CE Stable - $basearch
+      baseurl=https://download.docker.com/linux/fedora/$releasever/$basearch/stable
+      enabled=1
+      gpgcheck=1
+      gpgkey=https://download.docker.com/linux/fedora/gpg
+  tags: install_docker
+
+- name: Install Docker and related components
+  dnf:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: latest
+    update_cache: true
+  tags: install_docker
+
+- name: Restart Docker
+  systemd:
+    name: docker
+    state: restarted
+    enabled: yes
+  tags: install_docker

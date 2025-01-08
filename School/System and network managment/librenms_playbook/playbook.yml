@@ -1,0 +1,10 @@
+- name: Install LibreNMS and Docker
+  hosts: librenms
+  become: true
+  roles:
+    - common
+    - docker
+    - php
+    - nginx
+    - mysql
+    - librenms

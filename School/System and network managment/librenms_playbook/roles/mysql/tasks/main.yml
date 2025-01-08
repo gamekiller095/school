@@ -1,0 +1,26 @@
+- name: Install MySQL packages
+  dnf:
+    name:
+      - mariadb-server
+    state: present
+    update_cache: true
+
+- name: Start and enable MySQL service
+  systemd:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Create LibreNMS database
+  mysql_db:
+    name: librenms
+    state: present
+
+- name: Create LibreNMS MySQL user
+  mysql_user:
+    name: librenms
+    password: librenms
+    priv: "librenms.*:ALL"
+    host: localhost
+    state: present
+    plugin: mysql_native_password

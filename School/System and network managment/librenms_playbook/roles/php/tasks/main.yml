@@ -1,0 +1,25 @@
+- name: Install PHP and required extensions
+  dnf:
+    name:
+      - php
+      - php-cli
+      - php-fpm
+      - php-mysqlnd
+      - php-mbstring
+      - php-xml
+      - php-curl
+      - php-zip
+      - php-snmp
+    state: present
+    update_cache: true
+
+- name: Configure PHP
+  lineinfile:
+    path: "/etc/php.ini"
+    regexp: "{{ item.split('=')[0] }}"
+    line: "{{ item }}"
+  loop:
+    - "date.timezone = Europe/Brussels"
+    - "memory_limit = 512M"
+    - "upload_max_filesize = 100M"
+  notify: Restart PHP
